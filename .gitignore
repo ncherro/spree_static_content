@@ -3,3 +3,5 @@ nbproject
 **.gem
 Gemfile.lock
 spec/dummy/
+.ruby-version
+.ruby-gemset
