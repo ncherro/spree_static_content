@@ -28,13 +28,19 @@ en:
           <<: *page_labels
 
     page: Page
+    menu: Menu
     pages: Pages
+    menus: Menus
     static_content:
       static_pages: Static pages
       static_pages_desc: Manage static page with WYSIWYG editor.
       new_page: New page
+      new_menu: New menu
       editing_page: Editing page
+      editing_menu: Editing menu
+      showing_menu: Showing menu
       confirm_delete: Are you sure ?
       link: Link
+      pages: Pages
       meta_title: Meta Title
       page_navigation_title: "Pages"

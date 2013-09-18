@@ -1,6 +1,8 @@
 class Spree::Page < ActiveRecord::Base
   default_scope :order => "position ASC"
 
+  belongs_to :menu, class_name: "Spree::Menu", foreign_key: "spree_menu_id"
+
   validates_presence_of :title
   validates_presence_of [:slug, :body], :if => :not_using_foreign_link?
   validates_presence_of :layout, :if => :render_layout_as_partial?
@@ -15,7 +17,12 @@ class Spree::Page < ActiveRecord::Base
 
   before_save :update_positions_and_slug
 
-  attr_accessible :title, :slug, :body, :meta_title, :meta_keywords, :meta_description, :layout, :foreign_link, :position, :show_in_sidebar, :show_in_header, :show_in_footer, :visible, :render_layout_as_partial
+  attr_accessible :title, :slug, :body, :meta_title, :meta_keywords,
+    :meta_description, :layout, :foreign_link, :position, :show_in_sidebar,
+    :show_in_header, :show_in_footer, :visible, :render_layout_as_partial,
+    :parent_id, :spree_menu_id
+
+  delegate :title, to: :menu, prefix: true, allow_nil: true
 
   def self.by_slug(slug)
     slug = StaticPage::remove_spree_mount_point(slug)
@@ -33,6 +40,16 @@ class Spree::Page < ActiveRecord::Base
 
   def link
     foreign_link.blank? ? slug : foreign_link
+  end
+
+  class << self
+
+    def options_for_select
+      opts = []
+      Spree::Page.all.each do |p|
+      end
+    end
+
   end
 
 private

@@ -1,0 +1,40 @@
+<% content_for :menu_actions do %>  
+  <li><%= button_link_to Spree.t("static_content.new_menu"), new_object_url, :icon => 'icon-plus' %></li>
+<% end %>
+
+<% content_for :page_title do %>
+   <%= Spree.t("static_content.static_pages") %>
+<% end %>
+
+<table class="index">
+  <colgroup>
+    <col style="width: 40%" />
+    <col style="width: 40%" />
+    <col style="width: 10%" />
+  </colgroup>
+
+  <thead>
+    <tr>
+      <th><%= Spree::Page.human_attribute_name(:title) %></th>
+      <th><%= Spree.t("static_content.pages") %></th>
+      <th class="actions"></th>
+    </tr>
+  </thead>
+  
+  <tbody>
+    <% @menus.each do |menu| %>
+      <tr class="<%= cycle('odd', 'even') %>" id="<%= dom_id menu %>">
+        <td>
+          <%= menu.title %>
+        </td>
+        <td>
+          <%= link_to Spree.t("static_content.pages"), admin_pages_url(menu_id: menu.id) %>
+        </td>
+        <td  class="actions">
+          <%= link_to_edit menu, :no_text => true %>
+          <%= link_to_delete menu, :no_text => true %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

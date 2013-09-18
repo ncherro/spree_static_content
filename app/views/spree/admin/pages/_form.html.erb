@@ -1,5 +1,19 @@
 <div class="row">
   <div class="alpha ten columns">
+    <%= f.field_container :spree_menu_id do %>
+      <%= f.label :spree_menu_id, 'Menu' %><br />
+      <%= f.collection_select :spree_menu_id, Spree::Menu.all, :id, :title, include_blank: '- No menu -' %>
+      <%= f.error_message_on :parent_id %>
+    <% end %>
+
+    <% if f.object.spree_menu_id %>
+      <%= f.field_container :parent_id do %>
+        <%= f.label :parent_id, 'Parent' %><br />
+        <%= f.select :parent_id, options_for_select(f.object.menu.options_for_select(f.object.id), f.object.parent_id), include_blank: '- None (root level) -' %>
+        <%= f.error_message_on :parent_id %>
+      <% end %>
+    <% end %>
+
     <%= f.field_container :title do %>
       <%= f.label :title %> <span class="required">*</span><br />
       <%= f.text_field :title, :class => 'fullwidth title' %>

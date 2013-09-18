@@ -1,0 +1,11 @@
+<% content_for :page_title do %>
+   <%= Spree.t("static_content.static_pages") %> <i class="icon-arrow-right"></i> <%= Spree.t("static_content.editing_menu") %> "<%= @menu.title%>"
+<% end %>
+
+<% content_for :page_actions do %>
+  <li><%= button_link_to Spree.t(:back_to_static_menus_list), spree.admin_menus_url, :icon => 'icon-arrow-left' %></li>
+<% end %>
+
+<%= render "spree/shared/error_messages", :target => @menu %>
+
+<%= render partial: "menu", locals: { menu: @menu } %>

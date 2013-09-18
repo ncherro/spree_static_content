@@ -1,22 +1,28 @@
 <% content_for :page_actions do %>  
+  <li><%= button_link_to Spree.t("static_content.new_menu"), new_admin_menu_url, :icon => 'icon-plus' %></li>
   <li><%= button_link_to Spree.t("static_content.new_page"), new_object_url, :icon => 'icon-plus' %></li>
 <% end %>
 
 <% content_for :page_title do %>
    <%= Spree.t("static_content.static_pages") %>
+   for
+   <%= select_tag 'menu_id', options_for_select(Spree::Menu::options_for_select, params[:menu_id]) %>
 <% end %>
 
 <table class="index">
   <colgroup>
-    <col style="width: 40%" />
-    <col style="width: 40%" />
+    <col style="width: 30%" />
+    <col style="width: 30%" />
+    <col style="width: 30%" />
     <col style="width: 10%" />
     <col style="width: 10%" />
   </colgroup>
+
   <thead>
     <tr>
       <th><%= Spree::Page.human_attribute_name(:title) %></th>
       <th><%= Spree.t("static_content.link") %></th>
+      <th><%= Spree.t("menu") %></th>
       <th><%= Spree::Page.human_attribute_name(:visible) %></th>
       <th class="actions"></th>
     </tr>
@@ -30,6 +36,11 @@
         </td>
         <td>
           <%= link_to page.link, page.link, :target => '_blank' %>
+        </td>
+        <td>
+          <% if page.menu %>
+            <%= link_to page.menu_title, admin_menu_path(page.menu) %>
+          <% end %>
         </td>
         <td class="align-center">
           <%= content_tag(:i, '', :class => 'icon-ok green') if page.visible %>
