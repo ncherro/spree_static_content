@@ -138,4 +138,9 @@ class Spree::Menu < ActiveRecord::Base
     r
   end
 
+  def clear_menu_cache
+    self.class.clear_caches
+    true
+  end
+
 end

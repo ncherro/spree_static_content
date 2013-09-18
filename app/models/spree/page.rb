@@ -16,6 +16,7 @@ class Spree::Page < ActiveRecord::Base
   scope :sidebar_links, where(:show_in_sidebar => true).visible
 
   before_save :update_positions_and_slug
+  after_save :clear_menu_cache
 
   attr_accessible :title, :slug, :body, :meta_title, :meta_keywords,
     :meta_description, :layout, :foreign_link, :position, :show_in_sidebar,
@@ -43,17 +44,14 @@ class Spree::Page < ActiveRecord::Base
   end
 
   class << self
-
     def options_for_select
       opts = []
       Spree::Page.all.each do |p|
       end
     end
-
   end
 
-private
-
+  private
   def update_positions_and_slug
     unless new_record?
       return unless prev_position = Spree::Page.find(self.id).position
@@ -69,5 +67,9 @@ private
 
   def not_using_foreign_link?
     foreign_link.blank?
+  end
+
+  def clear_menu_cache
+    Spree::Menu.clear_caches
   end
 end
