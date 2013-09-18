@@ -15,13 +15,14 @@ class Spree::Page < ActiveRecord::Base
   scope :footer_links, where(:show_in_footer => true).visible
   scope :sidebar_links, where(:show_in_sidebar => true).visible
 
+  before_validation :set_slug
   before_save :update_positions_and_slug
   after_save :clear_menu_cache
 
   attr_accessible :title, :slug, :body, :meta_title, :meta_keywords,
     :meta_description, :layout, :foreign_link, :position, :show_in_sidebar,
     :show_in_header, :show_in_footer, :visible, :render_layout_as_partial,
-    :parent_id, :spree_menu_id
+    :parent_id, :spree_menu_id, :menu_item_title
 
   delegate :title, to: :menu, prefix: true, allow_nil: true
 
@@ -62,7 +63,21 @@ class Spree::Page < ActiveRecord::Base
       end
     end
 
-    return true
+    true
+  end
+
+  def set_slug
+    if self.slug.blank? && self.foreign_link.blank?
+      o_s = self.title.parameterize
+      s = o_s
+      i = 0
+      while Spree::Page.where(slug: s).count > 0
+        i += 1
+        s = "#{o_s}-#{i}"
+      end
+      self.slug = s
+    end
+    true
   end
 
   def not_using_foreign_link?
@@ -71,5 +86,6 @@ class Spree::Page < ActiveRecord::Base
 
   def clear_menu_cache
     Spree::Menu.clear_caches
+    true
   end
 end

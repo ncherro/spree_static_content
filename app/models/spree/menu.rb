@@ -7,6 +7,8 @@ class Spree::Menu < ActiveRecord::Base
 
   has_many :pages, class_name: "Spree::Page", foreign_key: "spree_menu_id", dependent: :destroy
 
+  validates :title, uniqueness: true
+
   after_save :clear_menu_cache
 
   def options_for_select(page_id=nil)
@@ -15,7 +17,7 @@ class Spree::Menu < ActiveRecord::Base
       # add this to our cache of cache keys for deletion
       self.class.cache_key(key)
       # used for admin forms - shows all items
-      q = pages.select('id, title, slug, foreign_link, parent_id, visible')
+      q = pages.select('id, title, menu_item_title, slug, foreign_link, parent_id, visible')
       arr = flatten(q.as_json(root: false))
       r = []
       arr.each do |item|
@@ -31,18 +33,25 @@ class Spree::Menu < ActiveRecord::Base
   def nested_items(*args)
     defaults = {
       only_visible: true,
+      parent_id: nil,
       max_levels: 0,
       current_path: nil,
     }
     options = defaults.merge(args.extract_options!)
 
-    key = "#{SP_CACHE_PREFIX}nested_items_#{self.id}_#{options[:only_visible]}_#{options[:max_levels]}_#{options[:current_path]}"
+    key = "#{SP_CACHE_PREFIX}nested_items_#{self.id}_#{options[:only_visible]}_#{options[:parent_id]}_#{options[:max_levels]}_#{options[:current_path]}"
     Rails.cache.fetch(key) do
       # add this to our cache of cache keys for deletion
       self.class.cache_key(key)
-      q = pages.select('id, title, slug, foreign_link, parent_id, visible')
+      q = pages.select('id, title, menu_item_title, slug, foreign_link, parent_id, visible')
       q = q.visible if options[:only_visible]
-      flatten(q.as_json(root: false), show_children: true, max_levels: options[:max_levels], current_path: options[:current_path])
+      flatten(
+        q.as_json(root: false),
+        show_children: true,
+        parent_id: options[:parent_id],
+        max_levels: options[:max_levels],
+        current_path: options[:current_path]
+      )
     end
   end
 
@@ -99,7 +108,7 @@ class Spree::Menu < ActiveRecord::Base
       page['is_active'] ||= false
       if page['parent_id'] == options[:parent_id]
         this_r = {
-          title: page['title'],
+          title: (page['menu_item_title'].present? ? page['menu_item_title'] : page['title']),
           id: page['id'],
           link: page['foreign_link'].present? ? page['foreign_link'] : "/#{page['slug']}",
           parents: options[:parents],
@@ -139,7 +148,7 @@ class Spree::Menu < ActiveRecord::Base
   end
 
   def clear_menu_cache
-    self.class.clear_caches
+    Spree::Menu.clear_caches
     true
   end
 

@@ -1,1 +1,11 @@
-<%= render_menu_items(menu.nested_items(only_visible: true, current_path: request.fullpath.split('?').first)) %>
+<%
+parent_id ||= nil
+max_levels ||= 0
+items = menu.nested_items(
+  only_visible: true,
+  current_path: request.fullpath.split('?').first,
+  parent_id: parent_id,
+  max_levels: max_levels
+)
+%>
+<%= render_menu_items(items) %>
