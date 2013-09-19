@@ -8,21 +8,17 @@ class Spree::Page < ActiveRecord::Base
   validates_presence_of :layout, :if => :render_layout_as_partial?
 
   validates :slug, :uniqueness => true, :if => :not_using_foreign_link?
-  validates :foreign_link, :uniqueness => true, :allow_blank => true
+  validates :foreign_link, :uniqueness => { :scope => :spree_menu_id }, :allow_blank => true
 
   scope :visible, where(:visible => true)
-  scope :header_links, where(:show_in_header => true).visible
-  scope :footer_links, where(:show_in_footer => true).visible
-  scope :sidebar_links, where(:show_in_sidebar => true).visible
 
   before_validation :set_slug
   before_save :update_positions_and_slug
   after_save :clear_menu_cache
 
   attr_accessible :title, :slug, :body, :meta_title, :meta_keywords,
-    :meta_description, :layout, :foreign_link, :position, :show_in_sidebar,
-    :show_in_header, :show_in_footer, :visible, :render_layout_as_partial,
-    :parent_id, :spree_menu_id, :menu_item_title
+    :meta_description, :layout, :foreign_link, :position, :visible,
+    :render_layout_as_partial, :parent_id, :spree_menu_id, :menu_item_title
 
   delegate :title, to: :menu, prefix: true, allow_nil: true
 
@@ -85,7 +81,10 @@ class Spree::Page < ActiveRecord::Base
   end
 
   def clear_menu_cache
-    Spree::Menu.clear_caches
+    # detect changes to specific fields
+    if self.title_changed? || self.menu_item_title_changed? || self.parent_id_changed? || self.spree_menu_id_changed?
+      self.menu.purge_from_cache
+    end
     true
   end
 end

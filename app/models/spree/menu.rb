@@ -9,13 +9,17 @@ class Spree::Menu < ActiveRecord::Base
 
   validates :title, uniqueness: true
 
-  after_save :clear_menu_cache
+  after_save :purge_from_cache
 
+
+  # RENDERING
   def options_for_select(page_id=nil)
+
     key = "#{SP_CACHE_PREFIX}options_for_select_#{self.id}_#{page_id}"
+
     Rails.cache.fetch(key) do
-      # add this to our cache of cache keys for deletion
-      self.class.cache_key(key)
+      self.cache_cache_key(key)
+
       # used for admin forms - shows all items
       q = pages.select('id, title, menu_item_title, slug, foreign_link, parent_id, visible')
       arr = flatten(q.as_json(root: false))
@@ -40,9 +44,10 @@ class Spree::Menu < ActiveRecord::Base
     options = defaults.merge(args.extract_options!)
 
     key = "#{SP_CACHE_PREFIX}nested_items_#{self.id}_#{options[:only_visible]}_#{options[:parent_id]}_#{options[:max_levels]}_#{options[:current_path]}"
+
     Rails.cache.fetch(key) do
-      # add this to our cache of cache keys for deletion
-      self.class.cache_key(key)
+      self.cache_cache_key(key)
+
       q = pages.select('id, title, menu_item_title, slug, foreign_link, parent_id, visible')
       q = q.visible if options[:only_visible]
       flatten(
@@ -55,29 +60,66 @@ class Spree::Menu < ActiveRecord::Base
     end
   end
 
+
+  # CACHE MANAGEMENT
+  def cache_keys
+    "#{SP_CACHE_KEYS}_#{self.id}"
+  end
+
+  def cache_cache_key(key)
+    Rails.logger.debug("writing Menu##{self.id} cache to #{key}")
+
+    # workaround for lack of delete_matched functionality with memcached
+    # tracks all of this menu's cache keys so we can delete them later
+    keys = Rails.cache.read(self.cache_keys) || []
+    unless keys.include?(key)
+      keys << key
+      Rails.cache.write(self.cache_keys, keys)
+    end
+
+    # and cache this key in the 'global' context
+    self.class.cache_cache_key(key)
+  end
+
+  def purge_from_cache
+    keys = Rails.cache.read(self.cache_keys) || []
+    keys.each do |key|
+      # delete the actual cache
+      Rails.cache.delete(key)
+    end
+    # overwrite this menu's cache tracker
+    Rails.cache.write(self.cache_keys, [])
+
+    # now overwrite the 'global' cache tracker, removing this menu's keys
+    global_keys = Rails.cache.read(SP_CACHE_KEYS) || []
+    global_keys -= keys
+    Rails.cache.write(SP_CACHE_KEYS, [])
+
+    # for callbacks
+    true
+  end
+
+
   class << self
     def options_for_select
       opts = [['- no menu -', nil,]]
       opts += Spree::Menu.all.collect{ |i| [i.title, i.id] }
     end
 
-    def cache_key(key)
+    def cache_cache_key(key)
       Rails.logger.debug("writing menu cache to #{key}")
       # workaround for lack of delete_matched functionality with memcached
       # tracks all of our menu cache keys so we can delete them later
-      keys = Rails.cache.fetch(SP_CACHE_KEYS) do
-        []
-      end
+      keys = Rails.cache.read(SP_CACHE_KEYS) || []
       unless keys.include?(key)
         keys << key
         Rails.cache.write(SP_CACHE_KEYS, keys)
       end
     end
 
-    def clear_caches
-      keys = Rails.cache.read(SP_CACHE_KEYS) do
-        []
-      end
+    # use this to clear ALL Spree::Menu caches
+    def clear_cache
+      keys = Rails.cache.read(SP_CACHE_KEYS) || []
       keys.each do |key|
         Rails.cache.delete(key)
       end
@@ -145,11 +187,6 @@ class Spree::Menu < ActiveRecord::Base
       end
     end
     r
-  end
-
-  def clear_menu_cache
-    Spree::Menu.clear_caches
-    true
   end
 
 end

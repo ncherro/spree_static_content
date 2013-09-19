@@ -14,6 +14,14 @@
       <% end %>
     <% end %>
 
+    <%= f.field_container :position do %>
+      <%= f.label :position %><br />
+      <%= f.number_field :position, :min => 0 %>
+      <span class="info">This will auto-populate if left blank</span>
+    <% end %>
+
+    <hr />
+
     <%= f.field_container :title do %>
       <%= f.label :title %> <span class="required">*</span><br />
       <%= f.text_field :title, :class => 'fullwidth title' %>
@@ -24,6 +32,9 @@
       <%= f.label :slug %> <span class="required">*</span><br />
       <%= f.text_field :slug, :class => 'fullwidth title' %>
       <%= f.error_message_on :slug %>
+      <% if f.object.new_record? %>
+        <span class="info">Leave blank to auto-populate from the <strong>Menu Item Title</strong> or <strong>Title</strong>.</span>
+      <% end %>
     <% end %>
 
     <%= f.field_container :body do %>
@@ -34,6 +45,14 @@
   </div>
   
   <div class="omega six columns">
+
+    <%= f.field_container :visible do %>
+      <%= f.check_box :visible %>
+      <%= f.label :visible %>
+    <% end %>
+
+    <hr />
+
     <%= f.field_container :meta_title do %>
       <%= f.label :meta_title %><br />
       <%= f.text_field :meta_title, :class => 'fullwidth title' %>
@@ -52,43 +71,34 @@
       <%= f.error_message_on :meta_description %>
     <% end %>
     
+    <hr />
+
     <%= f.field_container :layout do %>
       <%= f.label :layout %><br />
-      <%= f.text_field :layout, :class => 'fullwidth title' %>
+      <%= f.text_field :layout, :class => 'fullwidth title' %><br />
+      <span class="info">Override the default layout or template (see below).</span>
+    <% end %>
+
+    <%= f.field_container :render_layout_as_partial do %>
+      <%= f.check_box :render_layout_as_partial %>
+      <%= f.label :render_layout_as_partial %><br />
+      <span class="info">Only override the <strong>main content</strong> section of the layout. The partial must exist in the <strong>views/spree/static_content</strong> directory.</span>
+    <% end %>
+
+
+    <hr />
+
+    <%= f.field_container :menu_item_title do %>
+      <%= f.label :menu_item_title %><br />
+      <%= f.text_field :foreign_link, :class => 'fullwidth title' %><br />
+      <span class="info">Leave blank to use the <strong>Title</strong> field as the menu item title.</span>
     <% end %>
 
     <%= f.field_container :foreign_link do %>
-      <%= f.label :foreign_link %><br />
-      <%= f.text_field :foreign_link, :class => 'fullwidth title' %>
+      <%= f.label :foreign_link, 'Link Override' %><br />
+      <%= f.text_field :foreign_link, :class => 'fullwidth title' %><br />
+      <span class="info">If set, this will exist as a menu item that links off to another site or internal page. The <strong>Body</strong> field will not be required.<br />External links must begin with 'http://' or 'https://'<br />Internal links should begin with '/'.</span>
     <% end %>
-
-    <%= f.field_container :position do %>
-      <%= f.label :position %><br />
-      <%= f.number_field :position, :min => 0 %>
-    <% end %>
-
-    <ul id="static_page_options">
-      <li>
-        <%= f.check_box :show_in_sidebar %>
-        <%= f.label :show_in_sidebar %>
-      </li>
-      <li>
-        <%= f.check_box :show_in_header %>
-        <%= f.label :show_in_header %>
-      </li>
-      <li>
-        <%= f.check_box :show_in_footer %>
-        <%= f.label :show_in_footer %>
-      </li>
-      <li>
-        <%= f.check_box :visible %>
-        <%= f.label :visible %>
-      </li>
-      <li>
-        <%= f.check_box :render_layout_as_partial %>
-        <%= f.label :render_layout_as_partial %>
-      </li>
-    </ul>
 
   </div>
 </div>

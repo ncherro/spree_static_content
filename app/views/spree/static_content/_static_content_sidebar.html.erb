@@ -1,18 +1,22 @@
 <%
 # show siblings of the current page in the sidebar
-menu = Spree::Menu.find_by_title('Main menu')
-current_page = menu.pages.select('id, parent_id').find_by_slug(request.fullpath.split('?').first[1..-1])
-parent_page = nil
-if current_page.parent_id
-  parent_page = Spree::Page.select('title').find(current_page.parent_id)
-end
+current_page = Spree::Page.select('id, parent_id, spree_menu_id').find_by_slug(request.fullpath.split('?').first[1..-1])
+if current_page
+  parent_page = nil
+  current_menu = current_page.menu
+  if current_page.parent_id
+    parent_page = Spree::Page.select('title').find(current_page.parent_id)
+  end
 %>
 <nav id="sidebar-sp-menu">
   <%= content_tag(:h6, parent_page.title) if parent_page %>
   <%= render(
     "spree/frontend/menus/menu",
-    menu: menu,
+    menu: current_menu,
     parent_id: current_page.parent_id,
     max_levels: 2
   ) if current_page %>
 </nav>
+<%
+end
+%>
